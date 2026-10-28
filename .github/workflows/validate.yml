@@ -1,0 +1,35 @@
+name: Validate Mentor
+
+on:
+  push:
+    branches: [main, mentor-reminders-test]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate package JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+      - name: Check server and service-worker JavaScript
+        run: |
+          node --check api/chat.js
+          node --check api/health.js
+          node --check sw.js
+      - name: Extract inline scripts
+        run: python3 scripts/check-inline-js.py index.html
+      - name: Check inline script syntax
+        run: |
+          for file in .syntax-check/*.js; do
+            node --check "$file"
+          done
+      - name: Remove temporary syntax files
+        if: always()
+        run: rm -rf .syntax-check

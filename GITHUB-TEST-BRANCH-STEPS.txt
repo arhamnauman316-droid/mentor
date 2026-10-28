@@ -1,0 +1,53 @@
+MENTOR: PUSH A TEST VERSION WITHOUT REPLACING PRODUCTION
+
+1) Back up your existing Mentor project.
+2) Extract this ZIP to a temporary folder such as:
+   %USERPROFILE%\Downloads\Mentor-GitHub-Test-Release
+3) Open CMD and go to your EXISTING GitHub-connected project:
+   cd /d "%USERPROFILE%\Downloads\Mentor"
+4) Check your repo and current work:
+   git status
+   git remote -v
+   git branch --show-current
+   If you have uncommitted work you need, commit or stash it before switching branches.
+5) Update your production branch locally. If your production branch is named main:
+   git fetch origin
+   git switch main
+   git pull --ff-only origin main
+   If your production branch is named master, use master instead of main.
+6) Create or switch to the test branch:
+   git switch mentor-reminders-test
+   If that branch does not exist yet, run instead:
+   git switch -c mentor-reminders-test
+7) Copy the files from the extracted release into the EXISTING project root. Replace the matching app files and add the new docs, .github folder, scripts folder, .env.example, and .gitignore. Do NOT copy .env.local or .vercel from any other folder.
+   Use File Explorer, or copy these paths:
+   - index.html
+   - api\chat.js
+   - api\health.js
+   - sw.js
+   - package.json
+   - .gitignore
+   - .env.example
+   - README.md
+   - README-Mentor-Agent-and-Reminders.md
+   - TESTING-CHECKLIST.md
+   - .github\workflows\validate.yml
+   - scripts\check-inline-js.py
+   - GITHUB-TEST-BRANCH-STEPS.txt
+8) Before staging, inspect:
+   git status --short
+   git diff -- .gitignore
+   Make sure .env.local and any real keys are NOT staged. If a key was ever committed to GitHub, rotate it at the provider.
+9) Stage only the expected project files, inspect the staged diff, then commit and push:
+   git add index.html api/chat.js api/health.js sw.js package.json .gitignore .env.example README.md README-Mentor-Agent-and-Reminders.md TESTING-CHECKLIST.md LAUNCH-COPY.md .github/workflows/validate.yml scripts/check-inline-js.py GITHUB-TEST-BRANCH-STEPS.txt
+   git status --short
+   git diff --cached --stat
+   git diff --cached -- .gitignore
+   git commit -m "Add Mentor reminders and test validation"
+   git push -u origin mentor-reminders-test
+
+10) In Vercel, verify Settings -> Git -> Production Branch still points to main/master (your production branch). The push to mentor-reminders-test should create a Preview Deployment. Open the Vercel deployment details and use the generated Preview URL for testing.
+11) In Vercel -> Settings -> Environment Variables, set OPENROUTER_API_KEY for Preview. Redeploy the preview after adding/changing variables. Never commit actual secret values.
+12) Run TESTING-CHECKLIST.md against Preview. Only merge into the production branch after the test checks pass.
+
+If `git switch main` fails, run `git branch -a` and use the actual production branch name configured in Vercel. Do not deploy `mentor-reminders-test` with `vercel --prod`.
